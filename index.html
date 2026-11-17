@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>让橙龙桌面接管主屏幕</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b0b0c">
+<!-- Opened from the QR code on the TV's Control Center → 设为默认桌面. The TV puts its version,
+     flavor and LAN address after the #, which the browser never sends to the server. -->
+<style>
+  :root { --bg: #0b0b0c; --card: #1c1c1e; --line: rgba(255,255,255,.1); --text: #f5f5f7; --muted: #a1a1a6; --accent: #ff7a1a; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 560px; margin: 0 auto; padding: 28px 16px calc(40px + env(safe-area-inset-bottom)); }
+  header { display: flex; align-items: center; gap: 10px; }
+  h1 { font-size: 26px; letter-spacing: -.02em; margin: 0; }
+  .sub { color: var(--muted); margin: 6px 0 22px; font-size: 15px; }
+  h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 26px 4px 8px; }
+  .card { background: var(--card); border-radius: 16px; padding: 14px 16px; }
+  .card p { margin: 0 0 10px; }
+  .card p:last-child { margin-bottom: 0; }
+  pre {
+    margin: 0; padding: 12px; border-radius: 10px; background: #000; border: 1px solid var(--line);
+    font: 13px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; word-break: break-all;
+  }
+  button {
+    display: block; width: 100%; margin-top: 10px; padding: 12px; border: 0; border-radius: 12px;
+    background: var(--accent); color: #fff; font: inherit; font-weight: 600; transition: transform .16s ease-out;
+  }
+  button:active { transform: scale(.98); }
+  .note { color: var(--muted); font-size: 14px; }
+  a { color: var(--accent); }
+  .lang { margin-left: auto; color: var(--muted); font-size: 14px; background: none; border: 0; width: auto; padding: 0; margin-top: 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb03a"/><stop offset="1" stop-color="#ff5a1a"/></linearGradient></defs><rect width="32" height="32" rx="8" fill="url(#g)"/><path d="M8 20c0-1.6 1.3-2.9 2.9-2.9h10.2c1.6 0 2.9 1.3 2.9 2.9v1.6c0 1.6-1.3 2.9-2.9 2.9H10.9C9.3 24.5 8 23.2 8 21.6V20z" fill="#fff"/><circle cx="16" cy="21.8" r="1.5" fill="#ff5a1a"/></svg>
+    <h1 data-t="title"></h1>
+    <button class="lang" id="lang"></button>
+  </header>
+  <p class="sub" id="sub"></p>
+
+  <h2 data-t="aiHead"></h2>
+  <div class="card">
+    <p data-t="aiBody"></p>
+    <pre id="ai"></pre>
+    <button data-copy="ai" data-t="copy"></button>
+  </div>
+
+  <h2 data-t="tvHead"></h2>
+  <div class="card"><p data-t="tvBody"></p></div>
+
+  <h2 data-t="pcHead"></h2>
+  <div class="card">
+    <p data-t="pcBody"></p>
+    <pre id="cmd"></pre>
+    <button data-copy="cmd" data-t="copy"></button>
+    <p class="note" data-t="pcNote" style="margin-top:10px"></p>
+  </div>
+
+  <p class="note" data-t="keeps" style="margin:22px 4px 0"></p>
+  <p class="note" style="margin:8px 4px 0"><a href="https://chfs.abai.eu.org/" data-t="notes"></a></p>
+</main>
+<script>
+const T = {
+  zh: {
+    title: '让橙龙桌面接管主屏幕', lang: 'English',
+    sub: (v, f) => v ? `电视上现在是橙龙桌面 ${v}${f === 'guard' ? '（G 版）' : f === 'standard' ? '（S 版）' : ''}。` : '把橙龙桌面设成这台电视的主屏幕。',
+    tvHead: '在电视上', tvBody: '电视上已经装了橙龙桌面时：打开它 → 控制中心 → 「打开桌面守护」→ 在弹出的无障碍页面里打开「橙龙桌面守护」，主页键就回到橙龙桌面。S 版还能再装主页替身，但 TCL 多数固件装不上，装不上就只靠守护。小米、雷鸟待机后会把无障碍关掉，所以还是建议在电脑上做一次。',
+    pcHead: '在电脑上', pcBody: '三条通道，从第一条往下试，通了就不用再往下走：',
+    pcNote: '三条都不通（全新电视，没装输入法也没装桌面）：用 U 盘把 APK 拷到电视，再用「小白文件管理器」装。TCL 电视弹「多屏互动」时选同意。',
+    aiHead: '交给 Agent（最省事）', aiBody: '复制下面这段，发给能在你电脑上运行命令的 AI：',
+    apk: f => `橙龙桌面-${f === 'guard' ? '1.4.8-G' : '1.4.8-S'}.apk`,
+    ai: (tv, f) =>
+`请帮我把电视上的橙龙桌面设成主屏幕，并确认按主页键已经回到它。
+电视 IP：${tv}
+电视上装的：${f === 'guard' ? '橙龙桌面 G 版（无 HOME 声明，靠桌面守护接管）' : '橙龙桌面 S 版'}
+
+安装与排错说明在这里：https://chfs.abai.eu.org/chenglong-agent.md
+（打不开时用 https://gitee.com/abai569/orchard-manager-updates/raw/master/config/chenglong-agent.md ）
+
+请先完整读完说明再动手，然后在我电脑上亲自运行命令，不要只把步骤告诉我。需要我在电视上按遥控器时提醒我。
+最后按说明里的「验收」跑一遍，把那几条命令的原始输出贴给我。`,
+    keeps: '覆盖安装，App、排列顺序、壁纸和设置都会保留。', notes: '橙龙桌面和其他橙龙软件下载 ›',
+    copy: '复制', copied: '已复制',
+  },
+  en: {
+    title: 'Make Chenglong Desktop your Home screen', lang: '中文',
+    sub: (v, f) => v ? `This TV has Chenglong Desktop ${v}${f === 'guard' ? ' (G build)' : f === 'standard' ? ' (S build)' : ''}.` : 'Set Chenglong Desktop as this TV\'s Home screen.',
+    tvHead: 'On the TV', tvBody: 'If the desktop is already installed: open it, then Control Center → "Turn on desktop guard" and enable "Chenglong Desktop Guard" in the accessibility page. From then on Home comes back to it. On the S build you may also install the Home stand-in, though most TCL firmware refuses it — the guard alone is enough. Xiaomi and RayNeo turn accessibility off after standby, so doing it once from a computer is safer.',
+    pcHead: 'On a computer', pcBody: 'Three channels, try them from the first one down; stop at the first that works:',
+    pcNote: 'None of them works on a brand-new TV with neither the keyboard nor the desktop installed: copy the APK to a USB stick and install it with a file manager on the TV.',
+    aiHead: 'Hand it to an agent (easiest)', aiBody: 'Copy this and give it to an agent that can run commands on your computer:',
+    apk: f => `ChenglongDesktop-${f === 'guard' ? '1.4.8-G' : '1.4.8-S'}.apk`,
+    ai: (tv, f) =>
+`Please make Chenglong Desktop the Home screen on my TV and confirm the Home key returns to it.
+TV IP: ${tv}
+Installed: ${f === 'guard' ? 'Chenglong Desktop G build (declares no HOME intent; the desktop guard takes Home over)' : 'Chenglong Desktop S build'}
+
+The install and troubleshooting guide is here: https://chfs.abai.eu.org/chenglong-agent.md
+(If it does not open: https://gitee.com/abai569/orchard-manager-updates/raw/master/config/chenglong-agent.md )
+
+Read the whole guide before you start, then run the commands on my computer yourself rather than telling me the steps. Tell me when I need to press something on the TV.
+Finally, follow the guide's Check step and paste me the raw output of those commands.`,
+    keeps: 'It installs over the current version: apps, layout, wallpaper and settings stay as they are.',
+    notes: 'Download Chenglong apps ›', copy: 'Copy', copied: 'Copied',
+  },
+};
+const hash = new URLSearchParams(location.hash.slice(1));
+const ip = /^[0-9.]{7,15}$/.test(hash.get('tv') || '') ? hash.get('tv') : '<TV-IP>';
+const version = /^[0-9][0-9.]*(?:-test[0-9]+)?$/.test(hash.get('v') || '') ? hash.get('v') : '';
+const flavor = ['standard', 'guard', 'lite'].includes(hash.get('f')) ? hash.get('f') : 'standard';
+let lang = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+  document.title = t.title;
+  document.querySelectorAll('[data-t]').forEach(e => { e.textContent = t[e.dataset.t]; });
+  document.querySelector('#lang').textContent = t.lang;
+  document.querySelector('#sub').textContent = t.sub(version, flavor);
+  document.querySelector('#ai').textContent = t.ai(ip, flavor);
+  const apk = t.apk(flavor);
+  document.querySelector('#cmd').textContent =
+`# 1) 电视装了橙龙输入法：传包并自动拉起系统安装器
+curl -F "file=@${apk}" -F "autoInstall=true" http://${ip}:9988/upload
+
+# 2) 电视装了橙龙桌面并在运行：传包，再让它拉起安装器
+curl -F "file=@${apk}" http://${ip}:8899/api/files/upload
+curl -X POST http://${ip}:8899/api/files/open
+
+# 3) 能连 ADB（服务端口固定 5061，不要 kill-server，不要自己另起一个）
+set ANDROID_ADB_SERVER_PORT=5061
+"I:\\Program Files (x86)\\Android\\Sdk\\platform-tools\\adb.exe" connect ${ip}:5555
+"I:\\Program Files (x86)\\Android\\Sdk\\platform-tools\\adb.exe" -s ${ip}:5555 install -r "${apk}"`;
+}
+document.querySelector('#lang').onclick = () => { lang = lang === 'zh' ? 'en' : 'zh'; render(); };
+document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {
+  const text = document.getElementById(b.dataset.copy).textContent;
+  try { await navigator.clipboard.writeText(text); }
+  catch (_) {
+    const r = document.createRange(); r.selectNodeContents(document.getElementById(b.dataset.copy));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    try { document.execCommand('copy'); } catch (_) {}
+  }
+  const t = T[lang];
+  b.textContent = t.copied; clearTimeout(b.timer); b.timer = setTimeout(() => { b.textContent = t.copy; }, 1600);
+}));
+render();
+</script>
+</body>
+</html>
