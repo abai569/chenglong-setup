@@ -136,10 +136,9 @@ curl -F "file=@${apk}" -F "autoInstall=true" http://${ip}:9988/upload
 curl -F "file=@${apk}" http://${ip}:8899/api/files/upload
 curl -X POST http://${ip}:8899/api/files/open
 
-# 3) 能连 ADB（服务端口固定 5061，不要 kill-server，不要自己另起一个）
-set ANDROID_ADB_SERVER_PORT=5061
-"I:\\Program Files (x86)\\Android\\Sdk\\platform-tools\\adb.exe" connect ${ip}:5555
-"I:\\Program Files (x86)\\Android\\Sdk\\platform-tools\\adb.exe" -s ${ip}:5555 install -r "${apk}"`;
+# 3) 电视开了「网络调试 / ADB」，电脑上装了 adb（platform-tools）
+adb connect ${ip}:5555
+adb -s ${ip}:5555 install -r "${apk}"`;
 }
 document.querySelector('#lang').onclick = () => { lang = lang === 'zh' ? 'en' : 'zh'; render(); };
 document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', async () => {

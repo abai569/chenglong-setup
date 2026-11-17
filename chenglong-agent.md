@@ -42,15 +42,15 @@ curl -X POST http://<TV-IP>:8899/api/files/open
 
 ## 3. 通道 C：ADB
 
-### 环境约定（必须遵守）
+### 环境约定
 
-- adb 全路径：`I:\Program Files (x86)\Android\Sdk\platform-tools\adb.exe`
-- 服务端口 **固定 5061**：`set ANDROID_ADB_SERVER_PORT=5061`
-- **不许 `adb kill-server`**，**不许自己 `start-server`**。用户机器上 5061 有一个常驻 daemon，杀了它所有会话一起断，默认 5037 上只有幽灵 offline 设备。
-- 5555 连不上时不要反复重试，先让用户看盒子/电视的「网络调试」是否开着。
+- 用电脑上已经装好的 `adb`（Android SDK platform-tools）。不要写死安装路径，先 `adb version` 确认能跑；跑不起来就让用户装 platform-tools，或把 platform-tools 目录临时加进 PATH。
+- 不要改 `ANDROID_ADB_SERVER_PORT`，也不要 `adb kill-server`：默认 5037 即可，杀了会把用户其它会话一起断。
+- `adb connect` 前先确认电视/盒子开了「网络调试（ADB）」，同一个局域网。
+- 5555 连不上时不要反复重试，让用户确认开关和 IP。
 
 ```bash
-set ANDROID_ADB_SERVER_PORT=5061
+adb version
 adb connect <TV-IP>:5555
 adb devices
 adb -s <TV-IP>:5555 install -r "橙龙桌面-1.4.8-S.apk"
